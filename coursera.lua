@@ -11,6 +11,8 @@ local item_dir = os.getenv('item_dir')
 local downloaded = {}
 local addedtolist = {}
 
+local abortgrab = false
+
 load_json_file = function(file)
   if file then
     return JSON:decode(file)
@@ -103,6 +105,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     html = string.gsub(html, '\\u002F', '/')
     html = string.gsub(html, '\\u003C', '<')
     html = string.gsub(html, '\\u003E', '>')
+    if string.match(html, "the%s+class%s+you%s+were%s+looking%s+for%s+cannot%s+be%s+found") then
+      abortgrab = true
+    end
     for newurl in string.gmatch(html, '([^"]+)') do
       checknewurl(newurl)
     end
@@ -198,6 +203,10 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
   if (status_code >= 200 and status_code < 400) then
     downloaded[url["url"]] = true
   end
+
+  if abortgrab == true then
+    return wget.actions.ABORT
+  end
   
   if status_code >= 500 or
     (status_code >= 400 and status_code ~= 404 and status_code ~= 403 and status_code ~= 414) or
@@ -229,4 +238,11 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
   end
 
   return wget.actions.NOTHING
+end
+
+wget.callbacks.before_exit = function(exit_status, exit_status_string)
+  if abortgrab == true then
+    return wget.exits.IO_FAIL
+  end
+  return exit_status
 end
