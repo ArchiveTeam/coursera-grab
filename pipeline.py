@@ -60,7 +60,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20160627.05"
+VERSION = "20160627.06"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'coursera'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -206,7 +206,7 @@ class WgetArgs(object):
             X_CSRF2_Token = ''.join(random.choice(string.digits) for i in range(24))
             Cookie = "csrftoken=%s; %s=%s" % (X_CSRFToken, X_CSRF2_Cookie, X_CSRF2_Token)
             os.system("wget --save-cookies cookies.txt --keep-session-cookies --post-data 'email=bugmenot@mailinator.com&password=123456&webrequest=true' --header='Cookie: " + Cookie + "' --header='X-CSRFToken: " + X_CSRFToken + "' --header='X-CSRF2-Cookie: " + X_CSRF2_Cookie + "' --header='X-CSRF2-Token: " + X_CSRF2_Token + "' https://www.coursera.org/api/login/v3")
-            #os.remove('v3')
+            os.remove('v3')
             wget_args.append('https://www.coursera.org/course/' + item_value)
         else:
             raise Exception('Unknown item')
