@@ -51,9 +51,10 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   local function check(urla)
     --local url = string.gsub(string.match(urla, "^([^#]+)"),"^https?://", "http://")
     local url = string.match(urla, "^([^#]+)")
-    if string.match(url, "//") then
-      check(string.gsub(url, "//", "/"))
+    if string.match(url, "^https?://.*//") then
+      check(string.match(url, "^(https?://)")..string.gsub(string.match(url, "^https?://(.+)"), "//", "/"))
     end
+    local url = string.gsub(url, "\\", "")
     if (downloaded[url] ~= true and addedtolist[url] ~= true) and ((string.match(url, "^https?://[^/]*coursera%.org/") and string.match(url, "[^a-zA-Z]"..item_value) and not string.match(url, "[^a-zA-Z]"..item_value.."[a-zA-Z]")) or string.match(url, "/maestro/") or string.match(url, "^https?://[^/]*cloudfront%.net") or string.match(url, "^https?://[^/]*amazonaws%.com")) then
       if string.match(url, "&amp;") then
         table.insert(urls, { url=string.gsub(url, "&amp;", "&") })
@@ -66,7 +67,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
   end
 
-  if string.match(url, "^https?://class%.coursera%.org/"..item_value.."[^/]+") and not classname then
+  if string.match(url, "^https?://class%.coursera%.org/"..item_value.."[^/]+") then
     local classname = string.match(url, "^https?://class%.coursera%.org/([^/]+)")
     check("https://class.coursera.org/"..classname.."/api/forum/forums/0")
     check("https://class.coursera.org/"..classname.."/forum/list?forum_id=0")
