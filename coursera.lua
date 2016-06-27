@@ -11,8 +11,6 @@ local item_dir = os.getenv('item_dir')
 local downloaded = {}
 local addedtolist = {}
 
-local classname
-
 load_json_file = function(file)
   if file then
     return JSON:decode(file)
@@ -68,8 +66,8 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
   end
 
-  if string.match(url, "^https?://class%.coursera%.org/.+") and not classname then
-    classname = string.match(url, "^https?://class%.coursera%.org/(.+)")
+  if string.match(url, "^https?://class%.coursera%.org/"..item_value.."[^/]+") and not classname then
+    local classname = string.match(url, "^https?://class%.coursera%.org/([^/]+)")
     check("https://class.coursera.org/"..classname.."/api/forum/forums/0")
     check("https://class.coursera.org/"..classname.."/forum/list?forum_id=0")
     check("https://class.coursera.org/"..classname.."/api/forum/forums/0/threads?sort=subscribed&page=1&page_size=25")
@@ -129,6 +127,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     for urldata in string.gmatch(html, '{(%s*\\"[^{}]+\\"%s*)}') do
       if string.match(urldata, "link_data") then
         link_data = string.gsub(string.match(urldata, '\\"link_data\\"%s*:%s*\\"([^"]*)\\"'), ":", "/")
+        local classname = string.match(url, "^https?://class%.coursera%.org/([^/]+)")
         check("https://class.coursera.org/"..classname.."/"..link_data)
         if string.match(urldata, "link_type") then
           link_type = string.gsub(string.match(urldata, '\\"link_type\\"%s*:%s*\\"([^"]*)\\"'), ":", "/")
@@ -138,6 +137,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
     if string.match(url, "forum_id=[0-9]+") then
       local forum_id = string.match(url, "forum_id=([0-9]+)")
+      local classname = string.match(url, "^https?://class%.coursera%.org/"..item_value.."([^/]+)")
       check("https://class.coursera.org/"..classname.."/api/forum/forums/"..forum_id)
       check("https://class.coursera.org/"..classname.."/forum/list?forum_id="..forum_id)
       check("https://class.coursera.org/"..classname.."/api/forum/forums/"..forum_id.."/threads?sort=subscribed&page=1&page_size=25")
@@ -148,6 +148,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
     if string.match(url, "thread_id=[0-9]+") then
       local thread_id = string.match(url, "thread_id=([0-9]+)")
+      local classname = string.match(url, "^https?://class%.coursera%.org/"..item_value.."([^/]+)")
       check("https://class.coursera.org/"..classname.."/forum/thread?thread_id="..thread_id)
       check("https://class.coursera.org/"..classname.."/api/forum/threads/"..thread_id.."?sort=null")
       check("https://class.coursera.org/"..classname.."/api/forum/threads/"..thread_id)
@@ -160,6 +161,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
     if string.match(url, "user_id=[0-9]+") then
       local user_id = string.match(url, "user_id=([0-9]+)")
+      local classname = string.match(url, "^https?://class%.coursera%.org/"..item_value.."([^/]+)")
       check("https://class.coursera.org/"..classname.."/forum/profile?user_id="..user_id)
       check("https://class.coursera.org/"..classname.."/api/user/information/"..user_id)
       check("https://class.coursera.org/"..classname.."/api/user/information/"..user_id.."/activities")
@@ -203,11 +205,11 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
     io.stdout:flush()
     os.execute("sleep 8")
     tries = tries + 1
-    if tries >= 1 then
+    if tries >= 5 then
       io.stdout:write("\nI give up...\n")
       io.stdout:flush()
       tries = 0
-      if (string.match(url["url"], "^https?://[^/]*coursera%.org/") and string.match(url["url"], "[^a-zA-Z]"..item_value) and not string.match(url["url"], "[^a-zA-Z]"..item_value.."[a-zA-Z]")) or string.match(url["url"], "^https?://[^/]*cloudfront%.net") or (url["url"], "^https?://[^/]*amazonaws%.com") then
+      if (string.match(url["url"], "^https?://[^/]*coursera%.org/") and string.match(url["url"], "[^a-zA-Z]"..item_value) and not string.match(url["url"], "[^a-zA-Z]"..item_value.."[a-zA-Z]")) or string.match(url["url"], "^https?://[^/]*cloudfront%.net") or string.match(url["url"], "^https?://[^/]*amazonaws%.com") then
         return wget.actions.ABORT
       else
         return wget.actions.EXIT
