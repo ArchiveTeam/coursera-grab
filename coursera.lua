@@ -223,7 +223,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
       io.stdout:write("\nI give up...\n")
       io.stdout:flush()
       tries = 0
-      if err == "AUTHFAILED" then
+      if err == "AUTHFAILED" or err == "RETRFINISHED" then
         return wget.actions.EXIT
       elseif (string.match(url["url"], "^https?://[^/]*coursera%.org/") and string.match(url["url"], "[^a-zA-Z]"..item_value) and not string.match(url["url"], "[^a-zA-Z]"..item_value.."[a-zA-Z]")) or string.match(url["url"], "^https?://[^/]*cloudfront%.net") or string.match(url["url"], "^https?://[^/]*amazonaws%.com") then
         return wget.actions.ABORT
